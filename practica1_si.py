@@ -5,16 +5,47 @@ import time
 import glob
 import random
 import numpy as np
+import plot_ellipse
 
 def veloc(p1, p2, deltaT):
 	return np.subtract(p1,p2)/deltaT
 
+def prediction(A, x):
+	return A.dot(x)
+
+def covarianceUpdate(P, A, Q):
+	return A@P@A.T + Q
+
+def residualCovariance(H,P,R):
+	return H*P*H.T + R
+
+def kalmanGain(P,H,S):
+	return (P*H.T) * np.linalg.pinv(S)
 
 
 mypath = "Data/TestData/2012-04-02_120351/RectGrabber/"
 onlyfiles = sorted(glob.glob(mypath + "*0.pgm"))
 pt1 = ( 100 , 100)
 pt2 = ( 200 , 200)
+deltaT = 1
+A = np.array([	[1, 0, deltaT, 0],
+				[0, 1, 0, deltaT],
+				[0, 0, 1, 0],
+				[0, 0, 0, 1]])
+
+C = np.array([	[1, 0, 0, 0],
+				[0, 1, 0, 0],
+				[0, 0, 1, 0],
+				[0, 0, 0, 1]])
+
+Q = np.array([	[1, 0, 0, 0],
+				[0, 1, 0, 0],
+				[0, 0, 1, 0],
+				[0, 0, 0, 1]])
+
+
+
+
 
 r =  255
 g =  255
@@ -26,6 +57,7 @@ minw, win, pad, sca = cal
 
 predictions = []
 
+m_x = np.array([-1,-1,-1,-1]).T
 
 for i in onlyfiles :
 
@@ -41,34 +73,21 @@ for i in onlyfiles :
 	winname = 'image'
 	# image = imutils.resize(img, width=100)
 	(rects, wghts) = hog.detectMultiScale(img, winStride=win, padding=pad, scale=sca)
+	
+
+
 
 
 	
-	
-	for i, (x,y,w,h) in enumerate(rects):
+	if len(rects) > 0:
+		for i, (x,y,w,h) in enumerate(rects):
+			cv2.rectangle(img, (x,y),(x+w,y+h),(b,g,r))
+			if wghts[i]>1:
+				m_x = np.array([x+w/2,0,y+h/2,0]).T
 
-		cv2.rectangle(img, (x,y),(x+w,y+h),(b,g,r))
-
-		if wghts[i]> 0.5:
-			# print(x,type(x))
-			# print(y,type(y))
-			# print(w,type(w))
-			# print(h,type(h))
-			predictions.append(np.array([x+ w/2,y+h/2]))
-	
-	print(rects, wghts)
-	if len(predictions)>0 and len(predictions)<3:
-		# print(wghts)
-		# print(predictions[len(predictions)-1])
-		continue
-	elif len(predictions)==3:
-
-		# print(wghts)
-		# print(predictions[len(predictions)-1])
-		# break
-		continue
-	# pick = non_max_suppression(rects, probs=None, overlapThresh=ovt)
-
+	elif len(rects) == 0:
+		m_x = prediction(A,m_x)
+		
 	cv2.namedWindow(winname)
 	cv2.moveWindow(winname, 5,5) 
 	
