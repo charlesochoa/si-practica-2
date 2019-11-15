@@ -84,6 +84,7 @@ for i in onlyfiles :
 			cv2.rectangle(img, (x,y),(x+w,y+h),(b,g,r))
 			if wghts[i]>1:
 				m_x = np.array([x+w/2,0,y+h/2,0]).T
+				
 
 	elif len(rects) == 0:
 		m_x = prediction(A,m_x)
