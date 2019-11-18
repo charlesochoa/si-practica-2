@@ -23,18 +23,7 @@ def plot_ellipse(image, mean, covariance, color, confidence=0.95, label=None):
     scale = chi2.ppf(confidence, 2)
     vals, vecs = np.linalg.eigh(scale * covariance)
     indices = vals.argsort()[::-1]
-    # print("-----")
-    # print(vals)
-    # print(vals)
-    # print("vecs")
-    # print(vecs)
     vals, vecs = np.sqrt(vals[indices]), vecs[:, indices]
-    # print("vals")
-    # print(vals)
-    # print("vecs")
-    # print(vecs)
-    print("Cov")
-    print(covariance)
 
     center = int(mean[0] + .5), int(mean[1] + .5)
     axes = int(vals[0] + .5), int(vals[1] + .5)

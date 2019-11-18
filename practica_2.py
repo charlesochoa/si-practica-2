@@ -6,6 +6,9 @@ import glob
 import random
 import numpy as np
 import plot_ellipse
+import matplotlib
+import numpy as np
+import matplotlib.pyplot as plt
 
 def veloc(p1, p2, deltaT):
 	return np.subtract(p1,p2)/deltaT
@@ -23,6 +26,33 @@ def kalmanGain(P,H,S):
 	return (P*H.T) * np.linalg.pinv(S)
 
 
+np.random.seed(19680801)
+
+# example data
+mu = 100  # mean of distribution
+sigma = 15  # standard deviation of distribution
+x = mu + sigma * np.random.randn(437)
+
+num_bins = 50
+
+fig, ax = plt.subplots()
+
+# the histogram of the data
+n, bins, patches = ax.hist(x, num_bins, density=1)
+
+# add a 'best fit' line
+y = ((1 / (np.sqrt(2 * np.pi) * sigma)) *
+     np.exp(-0.5 * (1 / sigma * (bins - mu))**2))
+ax.plot(bins, y, '--')
+ax.set_xlabel('Smarts')
+ax.set_ylabel('Probability density')
+ax.set_title(r'Histogram of IQ: $\mu=100$, $\sigma=15$')
+
+# Tweak spacing to prevent clipping of ylabel
+# fig.tight_layout()
+# plt.show()
+
+
 mypath = "Data/TestData/2012-04-02_120351/RectGrabber/"
 onlyfiles = sorted(glob.glob(mypath + "*0.pgm"))
 pt1 = ( 100 , 100)
@@ -38,35 +68,20 @@ C = np.array([	[1, 0, 0, 0],
 				[0, 0, 1, 0],
 				[0, 0, 0, 1]])
 
-Q = np.array([	[0.05, 0, 0, 0],
-				[0, 0.01, 0, 0],
-				[0, 0, 0.05, 0],
-				[0, 0, 0, 0.01]])
+Q = np.array([	[3, 0, 0, 0],
+				[0, 1, 0, 0],
+				[0, 0, 3, 0],
+				[0, 0, 0, 1]])
 
 R = np.array([	[1, 0, 0, 0],
-				[0, 1, 0, 0],
+				[0, 2, 0, 0],
 				[0, 0, 1, 0],
-				[0, 0, 0, 1]])
+				[0, 0, 0, 2]])
 
 H = np.array([	[1, 0, 0, 0],
 				[0, 1, 0, 0],
 				[0, 0, 1, 0],
 				[0, 0, 0, 1]])
-
-# C = np.array([	[]])
-
-
-# x + w/2 
-# y + h/2
-
-# y[0] + y[2]/2 = x[0]
-
-
-# y[0] = x[0] - y[2]/2 
-# y[1] = x[1] - y[3]/2 
-# y[2] = (y-1[0] - y[0])/(deltaT*counterNoInput)
-# y[3] = (y-1[1] - y[1])/(deltaT*counterNoInput)
-
 
 I = np.array([	[1, 0, 0, 0],
 				[0, 1, 0, 0],
@@ -99,15 +114,18 @@ m_x_old = np.array([0,0,0,0]).T
 x_new = np.array([0,0]).T
 first_time = True
 countNoInput = 1
-scale_percent = 50 # percent of original size
+scale_percent = 40 # percent of original size
 # R = R/(scale_percent/100)
 print(R)
 for i in onlyfiles :
 
 	img = cv2.imread(i,cv2.IMREAD_COLOR)
-	width = int(img.shape[1] * scale_percent / 100)
-	height = int(img.shape[0] * scale_percent / 100)
-	dim = (width, height)
+	if first_time:
+		width = int(img.shape[1] * scale_percent / 100)
+		height = int(img.shape[0] * scale_percent / 100)
+		dim = (width, height)
+		
+	print(dim)
 	# resize image
 	img = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
 
@@ -123,13 +141,16 @@ for i in onlyfiles :
 
 	if len(rects) > 0:
 		for i, (x,y,w,h) in enumerate(rects):
-			if first_time:
-				m_x =  np.array([x+w/2,0,y+h/2,0])
-				last_detection = np.array([x+w/2,0,y+h/2,0])
-				first_time = False
+			secureColor = int(g*wghts[i]/1.4)
+			cv2.rectangle(img, (x,y),(x+w,y+h),(0, secureColor,0))
 			if wghts[i]>1:
-				cv2.rectangle(img, (x,y),(x+w,y+h),(b,g,r))
+				if first_time:
+					m_x =  np.array([x+w/2,y+h/2,0,0])
+					last_detection = np.array([x+w/2,y+h/2,0,0])
+					Q = Q*width/20000
+					first_time = False
 				wTemp = wghts[i]
+				
 				break
 	if not first_time:				
 		if wTemp == 0:
@@ -161,7 +182,7 @@ for i in onlyfiles :
 			plot_ellipse.plot_ellipse(img, np.array([m_x[0],m_x[1]]).T,P[:2, :2],(b,0,0))	
 			last_detection = Z
 			countNoInput= 1
-		print(P)
+		print(Q)
 		
 	
 		
