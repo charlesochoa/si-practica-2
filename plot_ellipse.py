@@ -24,12 +24,12 @@ def plot_ellipse(image, mean, covariance, color, confidence=0.95, label=None):
     vals, vecs = np.linalg.eigh(scale * covariance)
     indices = vals.argsort()[::-1]
     vals, vecs = np.sqrt(vals[indices]), vecs[:, indices]
-
     center = int(mean[0] + .5), int(mean[1] + .5)
     axes = int(vals[0] + .5), int(vals[1] + .5)
     angle = int(180. * np.arctan2(vecs[1, 0], vecs[0, 0]) / np.pi)
-
-    cv2.ellipse(image, center, axes, angle, 0, 360, color, 2)
-    if label is not None:
-        cv2.putText(image, label, center, cv2.FONT_HERSHEY_PLAIN,
-                    1, color, 1)
+    if  axes[0]< 200:
+        cv2.ellipse(image, center, axes, angle, 0, 360, color, 2)
+        if label is not None:
+            cv2.putText(image, label, center, cv2.FONT_HERSHEY_PLAIN,
+                        1, color, 1)
+    return axes
