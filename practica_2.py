@@ -36,13 +36,8 @@ def isInsideEllipse(mx,x,axes):
 np.random.seed(19680801)
 
 # example data
-mu = 100  # mean of distribution
-sigma = 15  # standard deviation of distribution
-x = mu + sigma * np.random.randn(437)
 
-num_bins = 50
 
-fig, ax = plt.subplots()
 
 # the histogram of the data
 # n, bins, patches = ax.hist(x, num_bins, density=1)
@@ -59,6 +54,8 @@ fig, ax = plt.subplots()
 
 
 
+# mypath = "Data2/"
+# onlyfiles = sorted(glob.glob(mypath + "*.jpg"))
 mypath = "Data/TestData/2012-04-02_120351/RectGrabber/"
 onlyfiles = sorted(glob.glob(mypath + "*0.pgm"))
 pt1 = ( 100 , 100)
@@ -75,9 +72,9 @@ C = np.array([	[1, 0, 0, 0],
 				[0, 0, 0, 1]])
 
 Q = np.array([	[1, 0, 0, 0],
-				[0, 0.5, 0, 0],
+				[0, 1, 0, 0],
 				[0, 0, 1, 0],
-				[0, 0, 0, 0.5]])
+				[0, 0, 0, 1]])
 
 R = np.array([	[15, 0, 0, 0],
 				[0, 30, 0, 0],
@@ -123,7 +120,7 @@ countNoInput = 1
 velocities_x = np.array([])
 velocities_y = np.array([])
 
-scale_percent = 60 # percent of original size
+scale_percent = 75 # percent of original size
 axes = (0,0)
 valid_detection = (0,0,0,0)
 for i in onlyfiles :
@@ -197,8 +194,10 @@ for i in onlyfiles :
 	cv2.waitKey(1)
 	
 # Tweak spacing to prevent clipping of ylabel
-n, bins, patches = ax.hist(velocities_x, num_bins, density=1)
-n, bins, patches = ax.hist(velocities_y, num_bins, density=1)
+# n, bins, patches = ax.hist(velocities_x, num_bins, density=1)
+print(velocities_y)
+fig, ax = plt.subplots()
+n, bins, patches = ax.hist(velocities_y, len(velocities_y), density=3)
 fig.tight_layout()
 plt.show()
 
